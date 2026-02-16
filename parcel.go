@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 )
 
 type ParcelStore struct {
@@ -94,8 +95,20 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 }
 
 func (s ParcelStore) SetAddress(number int, address string) error {
-	// реализуйте обновление адреса в таблице parcel
-	// менять адрес можно только если значение статуса registered
+	parcel, err := s.Get(number)
+	if err != nil {
+		return err
+	}
+
+	if parcel.Status != ParcelStatusRegistered {
+		return errors.New("status can be changed only for registered parcel")
+	}
+
+	_, err = s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number",
+		sql.Named("address", address), sql.Named("number", number))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
