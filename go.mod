@@ -1,4 +1,4 @@
-module github.com/Yandex-Practicum/go-db-sql-final
+module parcel-tracker
 
 go 1.21
 
