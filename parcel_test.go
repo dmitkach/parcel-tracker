@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -27,79 +27,79 @@ func getTestParcel() Parcel {
 func TestAddGetDelete(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	defer db.Close()
 
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
 
 	id, err := store.Add(parcel)
-	require.NoError(t, err)
-	require.NotEqual(t, 0, id)
+	assert.NoError(t, err)
+	assert.NotEqual(t, 0, id)
 
 	parc, err := store.Get(id)
-	require.NoError(t, err)
-	require.Equal(t, id, parc.Number)
-	require.Equal(t, parcel.Client, parc.Client)
-	require.Equal(t, parcel.Status, parc.Status)
-	require.Equal(t, parcel.Address, parc.Address)
-	require.Equal(t, parcel.CreatedAt, parc.CreatedAt)
+	assert.NoError(t, err)
+	assert.Equal(t, id, parc.Number)
+	assert.Equal(t, parcel.Client, parc.Client)
+	assert.Equal(t, parcel.Status, parc.Status)
+	assert.Equal(t, parcel.Address, parc.Address)
+	assert.Equal(t, parcel.CreatedAt, parc.CreatedAt)
 
 	err = store.Delete(id)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	_, err = store.Get(id)
-	require.Equal(t, sql.ErrNoRows, err)
+	assert.ErrorIs(t, sql.ErrNoRows, err)
 }
 
 // TestSetAddress проверяет обновление адреса
 func TestSetAddress(t *testing.T) {
 	db, err := sql.Open("sqlite", "tracker.db")
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	defer db.Close()
 
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
 
 	id, err := store.Add(parcel)
-	require.NoError(t, err)
-	require.NotEqual(t, 0, id)
+	assert.NoError(t, err)
+	assert.NotEqual(t, 0, id)
 
 	newAddress := "new test address"
 	err = store.SetAddress(id, newAddress)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	parc, err := store.Get(id)
-	require.NoError(t, err)
-	require.Equal(t, newAddress, parc.Address)
+	assert.NoError(t, err)
+	assert.Equal(t, newAddress, parc.Address)
 }
 
 // TestSetStatus проверяет обновление статуса
 func TestSetStatus(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	defer db.Close()
 
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
 
 	id, err := store.Add(parcel)
-	require.NoError(t, err)
-	require.NotEqual(t, 0, id)
+	assert.NoError(t, err)
+	assert.NotEqual(t, 0, id)
 
 	status := ParcelStatusSent
 	err = store.SetStatus(id, status)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	parc, err := store.Get(id)
-	require.NoError(t, err)
-	require.Equal(t, status, parc.Status)
+	assert.NoError(t, err)
+	assert.Equal(t, status, parc.Status)
 }
 
 // TestGetByClient проверяет получение посылок по идентификатору клиента
 func TestGetByClient(t *testing.T) {
 	db, err := sql.Open("sqlite", "tracker.db")
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	defer db.Close()
 
 	store := NewParcelStore(db)
@@ -118,21 +118,17 @@ func TestGetByClient(t *testing.T) {
 
 	for i := 0; i < len(parcels); i++ {
 		id, err := store.Add(parcels[i])
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		parcels[i].Number = id
 
 		parcelMap[id] = parcels[i]
 	}
 
 	storedParcels, err := store.GetByClient(client)
-	require.NoError(t, err)
-	require.Equal(t, len(parcels), len(storedParcels))
+	assert.NoError(t, err)
+	assert.Len(t, parcels, len(storedParcels))
 
 	for _, parcel := range storedParcels {
-		require.Equal(t, parcelMap[parcel.Number], parcel)
-		require.Equal(t, parcelMap[parcel.Number].Client, parcel.Client)
-		require.Equal(t, parcelMap[parcel.Number].Address, parcel.Address)
-		require.Equal(t, parcelMap[parcel.Number].CreatedAt, parcel.CreatedAt)
-		require.Equal(t, parcelMap[parcel.Number].Status, parcel.Status)
+		assert.Equal(t, parcelMap[parcel.Number], parcel)
 	}
 }
